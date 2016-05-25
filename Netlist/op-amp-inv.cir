@@ -1,0 +1,39 @@
+*Including the predefined op-amp subcircuit file
+.include ua741.txt
+*Connections as mentioned in subcircuit file
+
+.tran 1n 100n 0
+x1 1 2 3 4 5 UA741
+R1 an1 2 1k
+R2 an2 1 1k
+R3 5 2 2k
+R4 1 0 2k
+R5 5 out 1k
+R6 out 0 1k
+
+vin1 in1_an 0 PULSE (2 0 0 .0000001ns 0.0000001ns 50ns 100ns)
+vin2 in2_an 0 PULSE (2 0 0 .0000001ns 0.0000001ns 10ns 20ns)
+
+rin1 in1_an 0 1Meg
+rin2 in2_an 0 1Meg
+a1 [in1] [in2] [dg1] and_gate
+.model and_gate and_nghdl(instance_id = 12 rise_delay = 1.0e-10 fall_delay = 1.0e-10 stop_time=90n)
+.model or_gate or_nghdl(instance_id = 11 rise_delay = 1.0e-10 fall_delay = 1.0e-10 stop_time=90n)
+.model inv1 inverter(instance_id = 101 rise_delay = 1.0e-10 fall_delay = 1.0e-10 stop_time=90n)
+a2 [in1] [in2] [dg2] or_gate
+a3 [out] [dig_out] adc
+ainv [dig_out] [out_main] inv1
+*adc_bridge
+aconverter1 [in1_an in2_an] [in1 in2] adc
+*dac_bridge
+aconverter2 [dg1 dg2] [an1 an2] dac
+.model adc adc_bridge ( in_low =0.5 in_high =1.0
++                   rise_delay =1.0e-10 fall_delay =1.0e-10)
+.model dac dac_bridge(out_low = 0.0 out_high = 2.0 out_undef = 1.0
++                      input_load = 5.0e-14 t_rise = 1.0e-10 t_fall = 1.0e-10)
+
+
+vcc 3 0 dc 15v
+vee 4 0 dc -15v
+*Giving a sinusoidal input
+.end
